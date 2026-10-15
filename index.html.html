@@ -1,0 +1,497 @@
+<title>The Tiny Film Box</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;600&family=Archivo:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: single centered column, old-cinema bill typography, theater spotlights on dark pages, sketchbook white for Join us.
+   Fictional is one long "year": four season chapters joined by scroll-driven time-lapse interludes. */
+@property --bg{syntax:"<color>";inherits:true;initial-value:#07050b}
+@property --a1{syntax:"<color>";inherits:true;initial-value:#a23dff}
+@property --a2{syntax:"<color>";inherits:true;initial-value:#7dff2e}
+@property --a3{syntax:"<color>";inherits:true;initial-value:#ff8a1f}
+@property --ink{syntax:"<color>";inherits:true;initial-value:#ece8f2}
+@property --mute{syntax:"<color>";inherits:true;initial-value:#aaa1b8}
+@property --glow{syntax:"<color>";inherits:true;initial-value:#a23dff}
+:root{
+  color-scheme:dark;
+  --bg:#07050b;--a1:#a23dff;--a2:#7dff2e;--a3:#ff8a1f;--ink:#ece8f2;--mute:#aaa1b8;--on:#fff;--glow:#a23dff;
+  --d:18px;
+  --f-bill:"Limelight","Didot","Bodoni 72",Georgia,serif;
+  --f-label:"Oswald","Arial Narrow",Impact,sans-serif;
+  --f-body:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --grain:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/></svg>");
+}
+*,*::before,*::after{box-sizing:border-box}
+
+/* season palettes (Fictional page; data-s changes as you scroll) */
+body[data-p=fictional]{--bg:#120a06;--a1:#c0392b;--a2:#e3a72f;--a3:#d9702a;--ink:#f4e4cf;--mute:#b39d8a;--glow:#e3a72f}
+body[data-p=fictional][data-s=winter]{--bg:#060c18;--a1:#6fa8ff;--a2:#9d8cff;--a3:#8fe3c8;--ink:#e6eef9;--mute:#8fa3bd;--on:#07101e;--glow:#8fe3c8}
+body[data-p=fictional][data-s=spring]{--bg:#150b1c;--a1:#ffe27a;--a2:#ff8fc1;--a3:#b794f6;--ink:#fbf1f6;--mute:#b9a3bd;--on:#1a0f22;--glow:#ff8fc1}
+body[data-p=fictional][data-s=summer]{--bg:#180a0b;--a1:#ffd24a;--a2:#ff8a3d;--a3:#e5484d;--ink:#fff0e0;--mute:#c4a08c;--on:#1d0f10;--glow:#ff8a3d}
+/* documentary: archival ivory, sage and amber */
+body[data-p=documentary]{--bg:#0b0d0a;--a1:#e9dcb8;--a2:#7fb3a0;--a3:#d98f3a;--ink:#efe9db;--mute:#a7a493;--on:#0b0d0a;--glow:#d98f3a}
+/* commercial: marquee velvet with neon pink and gold */
+body[data-p=commercial]{--bg:#12060a;--a1:#ff4f7b;--a2:#ffcf5a;--a3:#5ee7df;--ink:#fbeff2;--mute:#c3a2ab;--on:#12060a;--glow:#ff4f7b}
+body[data-p=contact]{--bg:#f7f6f2;--ink:#151515;--mute:#555;--a1:#151515;--a2:#151515;--a3:#151515;--on:#f7f6f2;--glow:transparent;color-scheme:light}
+
+body{margin:0;overflow-x:hidden;background:var(--bg);color:var(--ink);font:400 1rem/1.7 var(--f-body);min-height:100vh;
+  transition:--bg 1.4s ease,--a1 1.4s ease,--a2 1.4s ease,--a3 1.4s ease,--ink 1.4s ease,--mute 1.4s ease,--glow 1.4s ease}
+/* theater spotlights */
+body::before{content:"";position:fixed;inset:0;z-index:-2;filter:blur(8px);pointer-events:none;
+  background:conic-gradient(from 158deg at 10% -6%,transparent 0deg,color-mix(in srgb,var(--a2) 50%,transparent) 11deg,transparent 26deg),
+             conic-gradient(from 174deg at 90% -6%,transparent 0deg,color-mix(in srgb,var(--a1) 60%,transparent) 11deg,transparent 26deg),
+             radial-gradient(60% 28% at 50% 104%,color-mix(in srgb,var(--a1) 40%,transparent),transparent);
+  -webkit-mask-image:linear-gradient(#000 30%,rgba(0,0,0,.25) 90%);mask-image:linear-gradient(#000 30%,rgba(0,0,0,.25) 90%);
+  animation:sway 9s ease-in-out infinite alternate}
+@keyframes sway{to{transform:translateX(2%)}}
+body::after{content:"";position:fixed;inset:0;z-index:60;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.6)),var(--grain);opacity:.14}
+body[data-p=contact]::before{display:none}
+body[data-p=contact]::after{background:var(--grain);opacity:.08;mix-blend-mode:multiply}
+#weather{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:none}
+body[data-p=fictional] #weather{display:block}
+
+/* cinema bill type */
+h1,h2{font-family:var(--f-bill);font-weight:400;line-height:1.05;margin:0 0 .45em;text-wrap:balance;letter-spacing:.01em}
+h3{font:600 1.15rem/1.25 var(--f-label);text-transform:uppercase;letter-spacing:.06em;margin:0 0 .4em}
+.eyebrow{font:400 .85rem var(--f-label);text-transform:uppercase;letter-spacing:.32em;color:var(--a3);margin:0 0 .9rem}
+.flicker{animation:flicker 7s linear infinite}
+.flicker.late{animation-delay:-2.3s}
+@keyframes flicker{
+  0%,6%,8.5%,40%,43%,100%{opacity:1}
+  7%{opacity:.35}7.6%{opacity:.9}8%{opacity:.2}
+  41%{opacity:.55}42%{opacity:.85}
+}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--a3);outline-offset:3px}
+
+header{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;align-items:center;justify-content:space-between;padding:1rem clamp(1rem,4vw,3rem);background:linear-gradient(#000,transparent);border-bottom:1px solid color-mix(in srgb,var(--ink) 14%,transparent)}
+.logo{font:400 1.2rem var(--f-bill);text-decoration:none;color:var(--a2);text-shadow:0 0 .5em color-mix(in srgb,var(--a2) 70%,transparent)}
+.mainnav{display:flex;flex-wrap:wrap;gap:.2rem}
+.mainnav a{font:400 .95rem var(--f-label);text-transform:uppercase;letter-spacing:.12em;text-decoration:none;padding:.25rem .7rem;color:var(--mute)}
+.mainnav a:hover{color:var(--ink)}
+.mainnav a[aria-current=page]{background:var(--a1);color:var(--on);box-shadow:0 0 16px color-mix(in srgb,var(--glow) 70%,transparent)}
+body[data-p=contact] header{background:none}
+body[data-p=contact] .logo{color:var(--ink);text-shadow:none}
+body[data-p=contact] .mainnav a[aria-current=page]{box-shadow:none}
+
+main{max-width:64rem;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) clamp(1rem,4vw,3rem) 4rem}
+.page{display:none}.page.on{display:block}
+
+/* shared page heading */
+.page-title{font-size:clamp(2.6rem,9vw,5.2rem);color:var(--a1);text-shadow:0 0 .08em var(--glow),0 0 .45em color-mix(in srgb,var(--glow) 65%,transparent)}
+.lead{font-size:1.15rem;max-width:36rem;margin:0 0 1.2rem}
+.p{max-width:38rem;margin:0 0 1rem;color:var(--mute)}
+
+/* home */
+.hero{text-align:center}
+.hero h1{font-size:clamp(2.4rem,9vw,5.6rem)}
+.hero .g{color:var(--a2);text-shadow:0 0 .08em var(--a2),0 0 .4em var(--a2),0 0 1em color-mix(in srgb,var(--a2) 55%,transparent)}
+.hero .v{color:#c58bff;text-shadow:0 0 .08em var(--a1),0 0 .4em var(--a1),0 0 1em var(--a1)}
+.hero .lead,.hero .p{margin-left:auto;margin-right:auto}
+
+.btn{display:inline-block;padding:.6rem 1.4rem;background:var(--a1);color:var(--on);font:600 1rem var(--f-label);text-transform:uppercase;letter-spacing:.12em;text-decoration:none;box-shadow:0 0 22px color-mix(in srgb,var(--glow) 60%,transparent)}
+.btn.alt{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--a2),0 0 16px color-mix(in srgb,var(--a2) 35%,transparent)}
+.btns{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;margin-top:2.5rem}
+
+.section-title{font-size:clamp(1.8rem,5vw,2.8rem);color:var(--a2);margin-top:4rem;text-shadow:0 0 .4em color-mix(in srgb,var(--a2) 60%,transparent)}
+.boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:1.2rem;margin:2.5rem 0}
+/* drawn seasonal cubes: thin pencil lines in each season's colors */
+.box{display:flex;flex-direction:column;align-items:center;text-decoration:none;padding:.5rem;color:var(--c1);font:400 1.6rem var(--f-bill);text-align:center;transition:transform .3s}
+.box svg{width:min(100%,9rem);aspect-ratio:1;margin-bottom:.6rem;filter:url(#pencil-c) drop-shadow(0 0 6px color-mix(in srgb,var(--c1) 55%,transparent));transform:rotate(var(--r,0deg));transition:transform .3s}
+.box:hover svg{transform:rotate(calc(var(--r,0deg) + 6deg)) translateY(-6px)}
+.box small{display:block;font:400 .85rem var(--f-label);text-transform:uppercase;letter-spacing:.1em;margin-top:.3rem;color:var(--mute)}
+.b-autumn{--c1:#e3a72f;--c2:#a3301f;--c3:#d9702a;--r:-4deg}
+.b-winter{--c1:#6fa8ff;--c2:#9d8cff;--c3:#8fe3c8;--r:3deg}
+.b-spring{--c1:#ffe27a;--c2:#ff8fc1;--c3:#b794f6;--r:-2deg}
+.b-summer{--c1:#ffd24a;--c2:#e5484d;--c3:#ff8a3d;--r:5deg}
+
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:2rem;margin-top:3rem;text-align:left}
+.cols > div{min-width:0}
+.cols h3{color:var(--a2)}
+.cols h3 a{text-decoration:none;border-bottom:1px solid currentColor}
+.cols p{margin:0;color:var(--mute);font-size:.95rem}
+
+/* films as hand-drawn horizontal boxes: front face holds the film, back face and edges sketched behind it */
+.films{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:2.6rem 2.4rem;margin-top:2rem;padding:var(--d) var(--d) 0 0;text-align:left}
+.film{position:relative;display:flex;flex-direction:column;min-width:0;padding:.75rem}
+.film > *:not(.frame){position:relative;z-index:1}
+.frame{position:absolute;left:0;top:calc(var(--d) * -1);width:calc(100% + var(--d));height:calc(100% + var(--d));overflow:visible;z-index:0;pointer-events:none;filter:url(#pencil-c) drop-shadow(0 0 5px color-mix(in srgb,var(--glow) 45%,transparent))}
+.frame path{fill:none;stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.frame .bk{stroke:var(--a2)}
+.frame .ln{stroke:var(--a3)}
+.frame .fr{stroke:var(--a1);fill:var(--bg)}
+.film:hover .frame{filter:url(#pencil-c) drop-shadow(0 0 10px color-mix(in srgb,var(--glow) 70%,transparent))}
+.poster{display:block;aspect-ratio:16/9;max-width:100%;background:linear-gradient(135deg,var(--a1),var(--a2) 60%,var(--a3));position:relative;overflow:hidden}
+.poster img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.poster::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,#000 0 .6rem,transparent .6rem 1.2rem) top/100% .5rem no-repeat,repeating-linear-gradient(90deg,#000 0 .6rem,transparent .6rem 1.2rem) bottom/100% .5rem no-repeat}
+.play{position:absolute;left:50%;top:50%;width:3.4rem;height:3.4rem;margin:-1.7rem 0 0 -1.7rem;border-radius:50%;background:rgba(0,0,0,.65);z-index:1;transition:transform .2s}
+.play::before{content:"";position:absolute;left:1.3rem;top:1rem;border:.7rem solid transparent;border-left:1.1rem solid #fff;border-right:0}
+.film:hover .play{transform:scale(1.1)}
+.film .t{padding:1rem .55rem .6rem;display:flex;flex-direction:column;gap:.6rem;flex:1}
+.film h3{margin:0;color:var(--ink)}
+.film p{margin:0;color:var(--mute);font-size:.93rem;flex:1}
+.film .btn{align-self:flex-start;padding:.45rem 1.1rem;font-size:.9rem}
+.tag{font:400 .75rem var(--f-label);text-transform:uppercase;letter-spacing:.2em;color:var(--a3)}
+
+/* fictional: a year in one page */
+.ribbon{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;flex-wrap:wrap;justify-content:center;gap:.25rem;padding:.6rem .5rem;margin:0 0 3rem;background:color-mix(in srgb,var(--bg) 82%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-bottom:1px solid color-mix(in srgb,var(--ink) 14%,transparent)}
+.ribbon a{font:400 .85rem var(--f-label);text-transform:uppercase;letter-spacing:.14em;text-decoration:none;color:var(--mute);padding:.2rem .75rem}
+.ribbon a[aria-current]{color:var(--on);background:var(--a1)}
+.chapter{scroll-margin-top:4.5rem;padding-top:1rem}
+.chapter h2{font-size:clamp(2.4rem,8vw,4.4rem);color:var(--a1);text-shadow:0 0 .08em var(--glow),0 0 .45em color-mix(in srgb,var(--glow) 65%,transparent)}
+
+/* time-lapse interlude between seasons */
+.interlude{position:relative;height:170vh;margin:4rem 0 2rem}
+.stage{position:sticky;top:12vh;height:76vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;text-align:center;overflow:hidden;padding:2.2rem 0}
+.stage::before,.stage::after{content:"";position:absolute;left:0;right:0;height:1.3rem;border-block:1px solid color-mix(in srgb,var(--ink) 25%,transparent);
+  background:repeating-linear-gradient(90deg,color-mix(in srgb,var(--ink) 30%,transparent) 0 .8rem,transparent .8rem 1.6rem) calc(var(--p,0) * -900px) 50%/auto .5rem repeat-x}
+.stage::before{top:0}.stage::after{bottom:0}
+.intertitle{font:400 clamp(1.5rem,5vw,2.6rem)/1.1 var(--f-bill);color:var(--ink);margin:0;opacity:var(--o,0)}
+.sky{width:min(100%,30rem);height:auto;overflow:visible}
+.sky .horizon{stroke:var(--ink);stroke-opacity:.55;stroke-width:1.2;fill:none;filter:url(#pencil-c)}
+.sky .track{stroke:var(--mute);stroke-opacity:.5;stroke-width:1;stroke-dasharray:3 6;fill:none}
+.sky .sun{fill:var(--a1);filter:drop-shadow(0 0 8px var(--glow))}
+.sky .tick{stroke:var(--mute);stroke-width:1.2}
+.sky .tick.on{stroke:var(--a1)}
+.month{font:400 clamp(2.4rem,9vw,4.8rem)/1 var(--f-bill);color:var(--a1);margin:0;text-shadow:0 0 .45em color-mix(in srgb,var(--glow) 60%,transparent)}
+.month.flip{animation:flip .45s ease-out}
+@keyframes flip{from{transform:rotateX(85deg);opacity:0}to{transform:none;opacity:1}}
+.passage{font:400 .85rem var(--f-label);text-transform:uppercase;letter-spacing:.3em;color:var(--mute);margin:0}
+.fin{text-align:center;margin:5rem 0 1rem}
+.fin h2{font-size:clamp(2.4rem,8vw,4rem);color:var(--a1)}
+.fin .p{margin-left:auto;margin-right:auto}
+
+/* commercial coming-soon sign */
+.soon{max-width:36rem;margin:calc(var(--d) + 1.5rem) var(--d) 3rem 0;padding:2.5rem 1.5rem;text-align:center}
+.film.soon p{flex:none}
+.film.soon .soon-title{font:400 clamp(2.4rem,9vw,4.6rem)/1 var(--f-bill);color:var(--a2);margin:0 0 .6rem;text-shadow:0 0 .08em var(--a2),0 0 .45em color-mix(in srgb,var(--a2) 65%,transparent)}
+.film.soon .p{margin:0 auto;color:var(--ink);font-size:1.05rem}
+.who{display:flex;flex-wrap:wrap;gap:.3rem 1.4rem;margin:.6rem 0 1rem;padding:0;list-style:none;font:400 1.15rem var(--f-label);text-transform:uppercase;letter-spacing:.08em;color:var(--a3)}
+.cta{display:flex;flex-wrap:wrap;gap:.8rem;margin-top:2.5rem}
+
+/* join us: white sketchbook with drawn cubes */
+#contact{position:relative}
+#contact h1{font-size:clamp(2.2rem,7vw,4.2rem);text-shadow:none;color:var(--ink)}
+#contact .eyebrow{color:var(--ink)}
+#contact .lead{color:var(--mute);max-width:34rem}
+#contact > *:not(.cubes){position:relative;z-index:1}
+.roles{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem;margin:.6rem 0 2.5rem;padding:0;list-style:none;font:400 1.15rem var(--f-label);text-transform:uppercase;letter-spacing:.08em;max-width:36rem}
+.contact-links{display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:center;margin-bottom:1rem}
+#contact .btn{background:var(--ink);color:var(--on);box-shadow:none}
+#contact .btn.alt{background:none;color:var(--ink);box-shadow:none;padding:.6rem 0;text-decoration:underline;text-underline-offset:.3em}
+.addr{font-size:.9rem;color:var(--mute);margin:0 0 1rem}
+#contact .cols h3{color:var(--ink)}
+.cubes{position:absolute;inset:-2rem -1rem 0;pointer-events:none;z-index:0;overflow:hidden}
+.cube{position:absolute;color:#1a1a1a;opacity:.55;animation:drift var(--dd,14s) ease-in-out infinite alternate;animation-delay:var(--dl,0s)}
+.cube svg{display:block;width:100%;height:auto;filter:url(#pencil)}
+@keyframes drift{0%{transform:translate(0,0) rotate(var(--r,0deg))}50%{transform:translate(var(--x,12px),var(--y,-18px)) rotate(calc(var(--r,0deg) + 8deg))}100%{transform:translate(calc(var(--x,12px) * -1),8px) rotate(calc(var(--r,0deg) - 6deg))}}
+
+footer{text-align:center;color:var(--mute);font:400 .9rem var(--f-label);text-transform:uppercase;letter-spacing:.25em;padding:2rem 1rem 3rem}
+@media (max-width:600px){.cube.hide-sm{display:none}.interlude{height:150vh}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="pencil"><feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.5"/></filter>
+  <filter id="pencil-c"><feTurbulence type="fractalNoise" baseFrequency=".04" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter>
+  <symbol id="cube-c" viewBox="0 0 64 64"><g fill="none" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="22" y="4" width="38" height="38" style="stroke:var(--c2)"/><path d="M4 20 22 4M42 20 60 4M4 58 22 42M42 58 60 42" style="stroke:var(--c3)"/><rect x="4" y="20" width="38" height="38" style="stroke:var(--c1)"/></g></symbol>
+  <symbol id="cube" viewBox="0 0 64 64"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="20" width="38" height="38"/><rect x="22" y="4" width="38" height="38"/><path d="M4 20 22 4M42 20 60 4M4 58 22 42M42 58 60 42"/></g></symbol>
+</svg>
+<canvas id="weather" aria-hidden="true"></canvas>
+
+<header>
+  <a class="logo" href="#home">The Tiny Film Box</a>
+  <nav class="mainnav" aria-label="Main">
+    <a href="#home">Home</a><a href="#fictional">Fictional</a><a href="#documentary">Documentary</a><a href="#commercial">Commercial</a><a href="#contact">Join us</a>
+  </nav>
+</header>
+
+<main>
+  <!-- 1 HOME -->
+  <section class="page hero" id="home">
+    <p class="eyebrow">Est. 2020 · Malmö</p>
+    <h1><span class="g flicker">Small films,</span><br><span class="v flicker late">big stories.</span></h1>
+    <p class="lead">The Tiny Film Box is an independent film production. The idea was always there, and in 2020 it finally began: first as a films account, then growing into a film club and a creative collective. We make short films with friends, family and fellow filmmakers.</p>
+    <p class="p">Each season, we open a new box. Pick a season and watch what we made.</p>
+
+    <h2 class="section-title">Now showing</h2>
+    <div class="films" id="featured"></div>
+
+    <h2 class="section-title">Tiny Seasonal Films</h2>
+    <div class="boxes">
+      <a class="box b-autumn" href="#f-autumn"><svg aria-hidden="true"><use href="#cube-c"/></svg>Autumn<small>Warm, dark, golden</small></a>
+      <a class="box b-winter" href="#f-winter"><svg aria-hidden="true"><use href="#cube-c"/></svg>Winter<small>Cold, quiet, glowing</small></a>
+      <a class="box b-spring" href="#f-spring"><svg aria-hidden="true"><use href="#cube-c"/></svg>Spring<small>Bright and blooming</small></a>
+      <a class="box b-summer" href="#f-summer"><svg aria-hidden="true"><use href="#cube-c"/></svg>Summer<small>Sunset and heat</small></a>
+    </div>
+
+    <h2 class="section-title">What we make</h2>
+    <div class="cols">
+      <div><h3><a href="#fictional">Fictional</a></h3><p>Short stories arranged by season, made with friends, family and fellow filmmakers.</p></div>
+      <div><h3><a href="#documentary">Documentary</a></h3><p>Real people, real rooms and real habits, filmed up close.</p></div>
+      <div><h3><a href="#commercial">Commercial</a></h3><p>Coming soon: short films for cafés, shops and brands that want their tiny world seen.</p></div>
+    </div>
+    <div class="btns"><a class="btn" href="#contact">Join the box</a><a class="btn alt" href="#commercial">Hire us</a></div>
+  </section>
+
+  <!-- 2 FICTIONAL -->
+  <section class="page" id="fictional">
+    <p class="eyebrow">A year in tiny stories</p>
+    <h1 class="page-title flicker">Fictional</h1>
+    <p class="lead">Our fiction shorts, arranged as one year. Scroll from autumn to summer and watch the seasons change.</p>
+    <nav class="ribbon" aria-label="Seasons">
+      <a href="#f-autumn">Autumn</a><a href="#f-winter">Winter</a><a href="#f-spring">Spring</a><a href="#f-summer">Summer</a>
+    </nav>
+    <div id="year"></div>
+    <div class="fin">
+      <h2 class="flicker">Fin.</h2>
+      <p class="p">Next season, a new box opens. Want to be in it?</p>
+      <div class="btns"><a class="btn" href="#contact">Join the box</a></div>
+    </div>
+  </section>
+
+  <!-- 3 DOCUMENTARY -->
+  <section class="page" id="documentary">
+    <p class="eyebrow">Real life, up close</p>
+    <h1 class="page-title flicker">Documentary</h1>
+    <p class="lead">Tiny worlds that already exist. Here we point the camera at real families, real rooms and real habits, and let them tell their own story.</p>
+    <div class="films" id="docs"></div>
+    <div class="cta">
+      <p class="p" style="flex-basis:100%">Know a story that should be filmed? Tell us about it.</p>
+      <a class="btn" href="#contact">Get in touch</a>
+    </div>
+  </section>
+
+  <!-- 4 COMMERCIAL -->
+  <section class="page" id="commercial">
+    <p class="eyebrow">For brands, cafés and places</p>
+    <h1 class="page-title flicker">Commercial</h1>
+    <p class="lead">Every café, workshop and corner shop is a tiny world of its own. Commercial is where we will turn those worlds into short films: your place, your people and the way you do things, made with the same care as our fiction.</p>
+
+    <div class="film soon">
+      <svg class="frame" aria-hidden="true"><path class="bk"/><path class="ln"/><path class="fr"/></svg>
+      <p class="eyebrow">Opening soon</p>
+      <p class="soon-title flicker late">Coming soon</p>
+      <p class="p">Tiny worlds, made visible.</p>
+    </div>
+
+    <h3>Made for</h3>
+    <ul class="who"><li>Cafés &amp; restaurants</li><li>Shops &amp; studios</li><li>Brands &amp; makers</li><li>Venues &amp; events</li><li>Local projects</li></ul>
+
+    <div class="cols">
+      <div><h3>Place portraits</h3><p>A short film that lets people step inside your space before they ever visit.</p></div>
+      <div><h3>Brand stories</h3><p>The people and the craft behind what you make, told like a short film with characters and a story.</p></div>
+      <div><h3>Event films</h3><p>Openings, launches and nights worth remembering, cut into something people want to share.</p></div>
+    </div>
+
+    <div class="cta">
+      <p class="p" style="flex-basis:100%">Want to be one of the first? Write to us at thetinyfilmbox@gmail.com and tell us about your place.</p>
+      <a class="btn" href="mailto:thetinyfilmbox@gmail.com?subject=Commercial%20film%20for%20my%20place">Email us</a>
+      <a class="btn alt" href="#contact">More ways to reach us</a>
+    </div>
+  </section>
+
+  <!-- 5 JOIN US -->
+  <section class="page" id="contact">
+    <div class="cubes" aria-hidden="true">
+      <span class="cube" style="width:110px;left:68%;top:2%;--r:-8deg;--dd:16s"><svg><use href="#cube"/></svg></span>
+      <span class="cube" style="width:34px;left:88%;top:22%;--r:14deg;--dd:11s;--dl:-3s"><svg><use href="#cube"/></svg></span>
+      <span class="cube" style="width:60px;left:80%;top:44%;--r:6deg;--dd:13s;--x:-14px"><svg><use href="#cube"/></svg></span>
+      <span class="cube hide-sm" style="width:18px;left:56%;top:14%;--r:-20deg;--dd:9s;--dl:-5s"><svg><use href="#cube"/></svg></span>
+      <span class="cube" style="width:150px;left:84%;top:66%;--r:10deg;--dd:19s;--dl:-7s"><svg><use href="#cube"/></svg></span>
+      <span class="cube hide-sm" style="width:26px;left:62%;top:58%;--r:24deg;--dd:10s;--dl:-2s"><svg><use href="#cube"/></svg></span>
+      <span class="cube hide-sm" style="width:44px;left:3%;top:86%;--r:-12deg;--dd:12s;--dl:-6s"><svg><use href="#cube"/></svg></span>
+      <span class="cube hide-sm" style="width:80px;left:46%;top:88%;--r:4deg;--dd:15s;--dl:-4s;--y:-10px"><svg><use href="#cube"/></svg></span>
+      <span class="cube" style="width:14px;left:94%;top:8%;--r:30deg;--dd:8s"><svg><use href="#cube"/></svg></span>
+    </div>
+    <p class="eyebrow">Auditions always open</p>
+    <h1 class="flicker">Get in touch, or join the box</h1>
+    <p class="lead">Want to hire The Tiny Film Box, collaborate on a project, or become part of the team? Write to us and tell us a bit about yourself or your idea.</p>
+    <p class="p">We are looking for people in:</p>
+    <ul class="roles"><li>Directing</li><li>Cinematography</li><li>Sound</li><li>Editing</li><li>Writing</li><li>Acting</li><li>Production</li><li>Finance and admin</li></ul>
+    <div class="contact-links">
+      <a class="btn" href="mailto:thetinyfilmbox@gmail.com?subject=The%20Tiny%20Film%20Box">Send an email</a>
+      <a class="btn alt" href="https://www.instagram.com/the_tinyfilmbox/" target="_blank" rel="noopener">Find us on Instagram</a>
+    </div>
+    <p class="addr">thetinyfilmbox@gmail.com · @the_tinyfilmbox</p>
+    <div class="cols">
+      <div><h3>Hire us</h3><p>Tell us what you need, your timeline and budget, and we will reply with a plan and a quote. See <a href="#commercial">Commercial</a>.</p></div>
+      <div><h3>Join the team</h3><p>Send a short intro, your role and any past work. No experience needed, just curiosity.</p></div>
+      <div><h3>Based in</h3><p>Malmö, Sweden, and working across Skåne, Gothenburg and beyond.</p></div>
+    </div>
+  </section>
+</main>
+<footer>The Tiny Film Box · Fin.</footer>
+
+<script>
+/* ================= EDIT HERE =================
+   Film titles, short descriptions and YouTube video IDs
+   (the code after watch?v= or youtu.be/). */
+const featured=[
+  {tag:"Competition",title:"The Tiny Film Box Competition",desc:"Our short film competition: filmmakers, one box, and a story to tell.",id:"gsUoOKgj3Bo"},
+  {tag:"Latest project",title:"Latest Project Review",desc:"A collage project in collaboration with Corpse Exquisito, where the filmmaker picks up a story where the last one left off.",id:"kx75s0Xlk4A"}
+];
+const seasons=[
+  {key:"autumn",name:"Autumn",num:"Chapter I",intro:"Darker tones, falling leaves and golden light. Stories of change and memory.",films:[
+    {title:"The Idea of “The Perfect Woman”",id:"7ALSp0PZvBQ"},
+    {title:"The Forbidden Fruit",id:"In7rW2Ltgk0"}]},
+  {key:"winter",name:"Winter",num:"Chapter II",intro:"Cold blues, soft purples and a glow of emerald. Quiet, intimate stories.",films:[
+    {title:"The Diary of Lost Kids",id:"ndsAbBJAaV4"},
+    {title:"Once Upon a Trend",id:"B8vEUHTuZCw"}]},
+  {key:"spring",name:"Spring",num:"Chapter III",intro:"Warm, bright yellows, pinks and purples. Stories of beginnings.",films:[
+    {title:"Pause: Unveil the Path of Procrastination",id:"z8HXRyr12xE"},
+    {title:"Do We Procrastinate?",id:"_3hOVWjFYaA"},
+    {title:"Spring film three",id:"JNiwJFk2tQ8"}]},
+  {key:"summer",name:"Summer",num:"Chapter IV",intro:"Sunset yellows, oranges and reds. Stories full of heat and movement.",films:[
+    {title:"Summer film one",id:"_C62e-Xn1wE"},
+    {title:"Solo",id:"s9UsNjUG9ik"},
+    {title:"Radioactive Twins",id:"U4_n8SkyFdM"}]}
+];
+const documentaries=[
+  {tag:"Documentary",title:"Anthill · Family 1: Rodriguez",id:"7OKb4M4ksh0"},
+  {tag:"Documentary",title:"Lala and Tita's Thoughts",id:"kx75s0Xlk4A"}
+];
+/* months shown in each time-lapse, from one season into the next */
+const passages=[["November","December","January"],["February","March","April"],["May","June","July"]];
+/* ============================================ */
+
+const yt=id=>"https://www.youtube.com/watch?v="+id;
+const frameSvg=`<svg class="frame" aria-hidden="true"><path class="bk"/><path class="ln"/><path class="fr"/></svg>`;
+const card=f=>`<article class="film">${frameSvg}<a class="poster" href="${yt(f.id)}" target="_blank" rel="noopener" aria-label="Watch ${f.title} on YouTube"><img src="https://i.ytimg.com/vi/${f.id}/hqdefault.jpg" alt="" loading="lazy" onerror="this.remove()"><span class="play"></span></a><div class="t">${f.tag?`<span class="tag">${f.tag}</span>`:""}<h3>${f.title}</h3>${f.desc?`<p>${f.desc}</p>`:""}<a class="btn" href="${yt(f.id)}" target="_blank" rel="noopener">Watch film</a></div></article>`;
+document.getElementById("featured").innerHTML=featured.map(card).join("");
+document.getElementById("docs").innerHTML=documentaries.map(card).join("");
+
+/* build the year: chapter, interlude, chapter, ... */
+const ticks=[150,200,250].map(x=>`<line class="tick" x1="${x}" y1="168" x2="${x}" y2="176"/>`).join("");
+document.getElementById("year").innerHTML=seasons.map((s,i)=>{
+  let h=`<section class="chapter" id="f-${s.key}" data-season="${s.key}"><p class="eyebrow">${s.num}</p><h2 class="flicker">${s.name}</h2><p class="lead">${s.intro}</p><div class="films">${s.films.map(card).join("")}</div></section>`;
+  if(i<seasons.length-1){
+    const next=seasons[i+1];
+    h+=`<div class="interlude" data-from="${s.key}" data-to="${next.key}" data-i="${i}" aria-hidden="true"><div class="stage">
+      <p class="intertitle">Three months later…</p>
+      <svg class="sky" viewBox="0 0 400 180"><path class="track" d="M40 160 A160 130 0 0 1 360 160"/><path class="horizon" d="M8 160 H392"/>${ticks}<circle class="sun" r="11" cx="40" cy="160"/></svg>
+      <p class="month">${passages[i][0]}</p>
+      <p class="passage">${s.name} → ${next.name}</p>
+    </div></div>`;
+  }
+  return h;
+}).join("");
+
+/* draw each film's box to its real size: back face offset up-right, four edges, front face on top */
+const D=18;
+function drawFrame(film){
+  const W=film.offsetWidth,H=film.offsetHeight;if(!W||!H)return;
+  const svg=film.querySelector(".frame");if(!svg)return;
+  svg.setAttribute("viewBox",`0 0 ${W+D} ${H+D}`);
+  const r=(x,y,w,h)=>`M${x} ${y}H${x+w}V${y+h}H${x}Z`;
+  const fx=1,fy=D,fw=W-2,fh=H-1,bx=D,by=1;
+  svg.querySelector(".bk").setAttribute("d",r(bx,by,fw,fh));
+  svg.querySelector(".ln").setAttribute("d",`M${fx} ${fy}L${bx} ${by}M${fx+fw} ${fy}L${bx+fw} ${by}M${fx+fw} ${fy+fh}L${bx+fw} ${by+fh}M${fx} ${fy+fh}L${bx} ${by+fh}`);
+  svg.querySelector(".fr").setAttribute("d",r(fx,fy,fw,fh));
+}
+const ro=new ResizeObserver(es=>es.forEach(e=>drawFrame(e.target)));
+document.querySelectorAll(".film").forEach(f=>ro.observe(f));
+
+/* ---------- seasons on scroll ---------- */
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const interludes=[...document.querySelectorAll(".interlude")];
+const ribbonLinks=[...document.querySelectorAll(".ribbon a")];
+let spawnMix={from:"autumn",to:"autumn",p:0};
+function updateYear(){
+  if(document.body.dataset.p!=="fictional")return;
+  let season=seasons[0].key;spawnMix={from:season,to:season,p:0};
+  const vh=innerHeight;
+  interludes.forEach(el=>{
+    const r=el.getBoundingClientRect(),stage=el.firstElementChild,sh=stage.offsetHeight,top=vh*.12;
+    const p=Math.min(1,Math.max(0,(top-r.top)/Math.max(1,r.height-sh)));
+    el.style.setProperty("--p",p.toFixed(4));
+    if(p>=.5)season=el.dataset.to;
+    if(p>0&&p<1)spawnMix={from:el.dataset.from,to:el.dataset.to,p};
+    else if(p>=1)spawnMix={from:el.dataset.to,to:el.dataset.to,p:0};
+    if(r.bottom<0||r.top>vh)return;
+    /* intertitle fades in, then out near the end */
+    stage.querySelector(".intertitle").style.setProperty("--o",Math.min(1,p*5,(1-p)*6).toFixed(3));
+    /* three days pass: the sun crosses the sky three times */
+    const t=(p*3)%1,a=Math.PI*(1-t),sun=stage.querySelector(".sun");
+    sun.setAttribute("cx",(200+160*Math.cos(a)).toFixed(1));
+    sun.setAttribute("cy",(160-130*Math.sin(a)).toFixed(1));
+    sun.style.opacity=(p<=0||p>=1)?.25:Math.sin(Math.PI*t).toFixed(3);
+    const day=Math.min(2,Math.floor(p*3));
+    stage.querySelectorAll(".tick").forEach((tk,i)=>tk.classList.toggle("on",i<=day&&p>0));
+    const m=stage.querySelector(".month"),name=passages[+el.dataset.i][day];
+    if(m.textContent!==name){m.textContent=name;m.classList.remove("flip");void m.offsetWidth;m.classList.add("flip")}
+  });
+  if(document.body.dataset.s!==season)document.body.dataset.s=season;
+  ribbonLinks.forEach(a=>{if(a.getAttribute("href")==="#f-"+season)a.setAttribute("aria-current","true");else a.removeAttribute("aria-current")});
+}
+let ticking=false;
+addEventListener("scroll",()=>{if(!ticking){ticking=true;requestAnimationFrame(()=>{ticking=false;updateYear()})}},{passive:true});
+addEventListener("resize",updateYear);
+
+/* ---------- weather: leaves, snow, petals, summer light ---------- */
+const cv=document.getElementById("weather"),ctx=cv.getContext("2d");
+const colors={autumn:["#c0392b","#e3a72f","#d9702a","#8a4a22"],winter:["#e6eef9","#cfe0ff","#8fe3c8"],spring:["#ff8fc1","#ffd1e6","#ffe27a","#b794f6"],summer:["#ffd24a","#ff8a3d","#fff0b0"]};
+let W=0,H=0,parts=[],running=false,last=0;
+function sizeCanvas(){const dpr=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function pickSeason(){return Math.random()<spawnMix.p?spawnMix.to:spawnMix.from}
+function spawn(q,initial){
+  const s=pickSeason();q.s=s;q.c=colors[s][Math.floor(Math.random()*colors[s].length)];
+  q.x=rnd(0,W);q.ph=rnd(0,6.28);q.rot=rnd(0,6.28);q.vr=rnd(-.02,.02);
+  if(s==="autumn"){q.size=rnd(5,9);q.vy=rnd(.6,1.2);q.vx=rnd(-.2,.2)}
+  else if(s==="winter"){q.size=rnd(1,2.6);q.vy=rnd(.3,.8);q.vx=rnd(-.15,.15)}
+  else if(s==="spring"){q.size=rnd(3.5,6);q.vy=rnd(.4,.9);q.vx=rnd(.3,.8)}
+  else{q.size=rnd(1.2,2.4);q.vy=-rnd(.2,.5);q.vx=rnd(-.15,.15)}
+  q.y=initial?rnd(0,H):(q.vy<0?H+10:-10);
+  return q;
+}
+function step(ts){
+  if(!running)return;
+  const dt=Math.min(3,(ts-last)/16.7||1);last=ts;
+  ctx.clearRect(0,0,W,H);
+  for(const q of parts){
+    q.y+=q.vy*dt;q.x+=(q.vx+Math.sin(ts*.0012+q.ph)*(q.s==="autumn"?.7:.3))*dt;q.rot+=q.vr*dt;
+    if(q.y>H+20||q.y<-20||q.x>W+20||q.x<-20)spawn(q,false);
+    ctx.save();ctx.translate(q.x,q.y);ctx.rotate(q.rot);ctx.fillStyle=q.c;
+    if(q.s==="autumn"){ctx.globalAlpha=.6;ctx.beginPath();ctx.ellipse(0,0,q.size,q.size*.45,0,0,6.283);ctx.fill();ctx.strokeStyle="rgba(0,0,0,.35)";ctx.lineWidth=.6;ctx.beginPath();ctx.moveTo(-q.size,0);ctx.lineTo(q.size,0);ctx.stroke()}
+    else if(q.s==="winter"){ctx.globalAlpha=.75;ctx.beginPath();ctx.arc(0,0,q.size,0,6.283);ctx.fill()}
+    else if(q.s==="spring"){ctx.globalAlpha=.65;ctx.beginPath();ctx.ellipse(0,0,q.size,q.size*.55,0,0,6.283);ctx.fill()}
+    else{ctx.globalAlpha=.35+.35*Math.sin(ts*.003+q.ph);ctx.shadowColor=q.c;ctx.shadowBlur=8;ctx.beginPath();ctx.arc(0,0,q.size,0,6.283);ctx.fill()}
+    ctx.restore();
+  }
+  requestAnimationFrame(step);
+}
+function weather(on){
+  if(reduced)on=false;
+  if(on&&!running){sizeCanvas();if(!parts.length){updateYear();const n=innerWidth<600?26:44;for(let i=0;i<n;i++)parts.push(spawn({},true))}running=true;requestAnimationFrame(t=>{last=t;step(t)})}
+  if(!on){running=false;ctx.clearRect(0,0,W,H)}
+}
+addEventListener("resize",()=>{if(running)sizeCanvas()});
+
+/* ---------- pages ---------- */
+function show(id,smooth){
+  let el=document.getElementById(id),page=el&&el.closest(".page");
+  if(!page){page=document.getElementById("home");el=page}
+  const same=document.body.dataset.p===page.id;
+  document.querySelectorAll(".page").forEach(p=>p.classList.toggle("on",p===page));
+  document.body.dataset.p=page.id;
+  if(page.id!=="fictional")delete document.body.dataset.s;
+  document.querySelectorAll(".mainnav a").forEach(a=>{if(a.getAttribute("href")==="#"+page.id)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")});
+  if(el===page)window.scrollTo(0,0);
+  else el.scrollIntoView({behavior:same&&smooth&&!reduced?"smooth":"auto"});
+  weather(page.id==="fictional");
+  updateYear();
+}
+/* switch pages on click directly, so it works even where the address bar hash can't change */
+document.addEventListener("click",e=>{
+  const a=e.target.closest('a[href^="#"]');
+  if(!a)return;
+  const id=a.getAttribute("href").slice(1);
+  if(!document.getElementById(id))return;
+  e.preventDefault();
+  show(id,true);
+  try{history.replaceState(null,"","#"+id)}catch(err){}
+});
+addEventListener("hashchange",()=>show(location.hash.slice(1)));
+show((location.hash||"#home").slice(1));
+</script>
